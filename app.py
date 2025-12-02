@@ -142,4 +142,102 @@ def create_post():
         db.session.add(new_post)
         db.session.commit()
 
-        
+        flash('Post created successfully!', 'success')
+        return redirect(url_for('index'))
+    
+
+    return render_template('create_post.html')
+
+
+
+
+@app.route('/post/<int:id>')
+def view_post(id):
+    post = Post.query.get_or_404(id)
+    return render_template('view_post.html', post=post)
+
+
+
+@app.route('/post/<int:id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_post(id):
+    post = Post.query.get_or_404(id)
+
+    if post.user_id != current_user.id:
+        flash('You can only edit your own posts', 'error')
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        post.title  = request.form['title']
+        post.content = request.form['content']
+        post.updated_at = datetime.utcnow()
+        db.session.commit()
+
+        flash('Post updated successfully!', 'success')
+        return redirect(url_for('view_post', id=post.id))
+    
+    return render_template('edit_post.html', post=post) 
+
+
+
+@app.route('/post/<int:id>/delete')
+@login_required
+def delete_post(id):
+    post = Post.query.get_or_404(id)
+
+    if post.user_id != current_user.id:
+        flash('You can only delete your own posts', 'error')
+        return redirect(url_for('index'))
+    
+    db.session.delete(post)
+    db.session.commit()
+
+    flash('Post deleted successfully!', 'success')
+    return redirect(url_for('index'))
+
+
+@app.route('/post/<int:post_id>/comment', methods=['POST'])
+@login_required
+def add_comment(post_id):
+    post  Post.query.get_or_404(post_id)
+    content = request.form['content']
+
+    new_comment = Comment(content=content, user_id=current_user.id, post_id=post.id)
+    db.session.add(new_comment)
+    db.session.commit()
+
+    flash('Comment added', 'success')
+    return redirect(url_for('view_post', id=post_id))
+
+
+
+
+@app.route('/comment/<int:id>/delete')
+@login_required
+def delete_comment(id):
+    comment = Comment.query.get_or_404(id)
+    post_id = comment.post_id
+
+    if comment.user(id) != current_user.id:
+        flash('You can only delete your own comments', 'error')
+        return redirect(url_for('view_post', id=post_id))
+    
+    db.session.delete(comment)
+    db.session.commit()
+
+    flash('Comment deleted', 'success')
+    return redirect(url_for('view_post', id=post_id))
+
+
+with app.app_context():
+    db.create_all()
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+    
+
+    
+
+
