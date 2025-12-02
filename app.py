@@ -1,7 +1,8 @@
 from flask import Flask, flash, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 import os
 
@@ -14,8 +15,14 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') or 'SECRET'
 
 db = SQLAlchemy(app)
-login_manager = LoginManager()
+login_manager = LoginManager(app)
 login_manager.login_view = 'login'
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 
 
 #Database Models --------------------------------
@@ -34,8 +41,8 @@ class User(UserMixin, db.Model):
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
-        def check_password(slef, password):
-            return check_password_hash(self.password_hash, password)
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
         
 class Post(db.Model):
     __tablename__ = 'posts'
@@ -43,7 +50,7 @@ class Post(db.Model):
     title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     comments = db.relationship('Comment', backref='post', lazy=True, cascade='all, delete-orphan')      
@@ -54,14 +61,11 @@ class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False)    
 
 
 
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
 
 
 
@@ -114,7 +118,7 @@ def login():
 
         if user and user.check_password(password):
             login_user(user)
-            flash('Login successful!', 'success')
+            flash('Logged in successfully!', 'success')
             return redirect(url_for('index'))
         else:
             flash('Invalid username or password', 'error')
@@ -199,7 +203,7 @@ def delete_post(id):
 @app.route('/post/<int:post_id>/comment', methods=['POST'])
 @login_required
 def add_comment(post_id):
-    post  Post.query.get_or_404(post_id)
+    post = Post.query.get_or_404(post_id)
     content = request.form['content']
 
     new_comment = Comment(content=content, user_id=current_user.id, post_id=post.id)
@@ -218,7 +222,7 @@ def delete_comment(id):
     comment = Comment.query.get_or_404(id)
     post_id = comment.post_id
 
-    if comment.user(id) != current_user.id:
+    if comment.user_id != current_user.id:
         flash('You can only delete your own comments', 'error')
         return redirect(url_for('view_post', id=post_id))
     

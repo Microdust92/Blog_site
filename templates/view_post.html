@@ -9,7 +9,7 @@
         <p class="post-meta">
             By {{ post.author.username }} | {{ post.created_at.strftime('%B %d, %Y at %I:%M %p') }}
             {% if post.updated_at != post.created_at %}
-                <span class=="edited">(Edited: {{ post.updated_at.strftime('%B %d, %Y') }})</span>
+                <span class="edited">(Edited: {{ post.updated_at.strftime('%B %d, %Y') }})</span>
             {% endif %}
         </p>
 
@@ -28,7 +28,7 @@
         <h3>Comments ({{ post.comments|length }})</h3>
 
         {% if current_user.is_authenticated %}
-            <form method="POST" action="{{ url_for('add_comment', post_id=post.id) }}" class=="comment-form"></form>>
+            <form method="POST" action="{{ url_for('add_comment', post_id=post.id) }}" class="comment-form">
                 <textarea name="content" placeholder="Add your comment here..." required></textarea>
                 <button type="submit">Post Comment</button>
             </form>
@@ -45,7 +45,7 @@
                     <p class="comment-content">{{ comment.content }}</p>
 
                     {% if current_user.is_authenticated and current_user.id == comment.author.id %}
-                        <a href="{{ url_for('delete_comment', comment_id=comment.id) }}" class="btn-delete-comment" onclick="return confirm('Delete this comment?')">Delete</a>
+                        <a href="{{ url_for('delete_comment', id=comment.id) }}" class="btn-delete-comment" onclick="return confirm('Delete this comment?')">Delete</a>
                     {% endif %}
                 </div>
             {% endfor %}
