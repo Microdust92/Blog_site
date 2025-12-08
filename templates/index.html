@@ -13,7 +13,7 @@
                 <p class="post-meta">
                     By {{ post.author.username }} | {{ post.created_at.strftime('%B %d, %Y') }}
                 </p>
-                <p class="post-excerpt">{{ post.content[:200] }}{% if post.content|length > 200 %}...{% endif %}</p>
+                <p class="post-excerpt">{{ post.content[:200]|safe }}{% if post.content|length > 200 %}...{% endif %}</p>
                 <a href="{{ url_for('view_post', id=post.id) }}" class="read-more">Read More</a>
             </article>
         {% endfor %}

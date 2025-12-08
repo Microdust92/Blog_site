@@ -29,8 +29,8 @@ def load_user(user_id):
 
 
 def sanitize_input(text):
-    allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'code', 'pre', 'blockquote']
-    allowed_attrs = {}
+    allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'code', 'pre', 'blockquote', 'a', 'iframe']
+    allowed_attrs = {'a': ['href', 'title'], 'iframe': ['src', 'width', 'height', 'frameborder', 'allowfullscreen']}
     return bleach.clean(text, tags=allowed_tags, attributes=allowed_attrs, strip=True)
 
 
