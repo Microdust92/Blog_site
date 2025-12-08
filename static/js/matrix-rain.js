@@ -30,6 +30,7 @@ function resizeCanvas() {
 
 // Matrix characters
 const chars = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+//const chars = '01';
 const fontSize = 14;
 let drops = [];
 

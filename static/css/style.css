@@ -14,8 +14,6 @@ body {
     radial-gradient(at 80% 0%, rgba(139, 92, 246, 0.08) 0px, transparent 50%),
     radial-gradient(at 0% 50%, rgba(40, 180, 240, 0.05) 0px, transparent 50%);
   min-height: 100vh;
-  display: flex;           /* Add this */
-  flex-direction: column;  /* Add this */
 }
 
 /* Header */
@@ -132,10 +130,7 @@ main {
   max-width: 900px;
   margin: 3rem auto;
   padding: 0 2rem;
-  flex: 1;
 }
-
-
 
 /* Flash Messages */
 .flash {
@@ -465,8 +460,7 @@ main {
   padding: 2.5rem;
   border-radius: 12px;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
-  max-width: 100%; /* Change to 100% */
-  width: 100%; /* Add this */
+  max-width: 600px;
   margin: 0 auto;
   border: 1.5px solid rgba(40, 180, 240, 0.3);
 }
@@ -501,7 +495,6 @@ main {
   background-color: rgba(21, 26, 33, 0.6);
   color: #e0e0e0;
   transition: all 0.3s ease;
-
 }
 
 .form-group input:focus,
@@ -562,9 +555,6 @@ footer {
 
 /* Management Container */
 .management-container {
-  max-width: 1200px;
-  width: 1200px;
-  margin: 0 auto;
   background: rgba(21, 26, 33, 0.8);
   backdrop-filter: blur(10px);
   padding: 2.5rem;
@@ -709,4 +699,102 @@ tbody tr:hover {
   th, td {
     padding: 0.6rem;
   }
+}
+
+/* About and Contact Pages */
+.about-content,
+.contact-content {
+  line-height: 1.8;
+  color: #d0d0d0;
+}
+
+.about-content h3,
+.contact-content h3 {
+  color: #28b4f0;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.about-content p,
+.contact-content p {
+  margin-bottom: 1rem;
+  font-size: 1.05rem;
+}
+
+.feature-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 1.5rem 0;
+}
+
+.feature-list li {
+  padding: 0.8rem 0;
+  padding-left: 2rem;
+  position: relative;
+  line-height: 1.7;
+}
+
+.feature-list li::before {
+  content: '▸';
+  position: absolute;
+  left: 0;
+  color: #28b4f0;
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.contact-info {
+  background: rgba(40, 180, 240, 0.05);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #28b4f0;
+  margin: 1.5rem 0;
+}
+
+.contact-item {
+  padding: 0.8rem 0;
+  font-size: 1.05rem;
+}
+
+.contact-item strong {
+  color: #8b5cf6;
+  margin-right: 0.5rem;
+}
+
+.contact-item a {
+  color: #28b4f0;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.contact-item a:hover {
+  color: #5ec7f5;
+  text-decoration: underline;
+}
+
+.skills-section {
+  background: rgba(139, 92, 246, 0.05);
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #8b5cf6;
+  margin: 1.5rem 0;
+}
+
+.skills-section p {
+  margin-bottom: 0.8rem;
+}
+
+.skills-section strong {
+  color: #8b5cf6;
+}
+
+iframe {
+  position: relative;
+  z-index: 1;
+}
+
+#matrix-rain {
+  z-index: -9999 !important;
 }

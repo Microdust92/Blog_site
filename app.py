@@ -9,7 +9,6 @@ import bleach
 
 
 
-
 load_dotenv()
 
 app = Flask(__name__)
@@ -282,6 +281,8 @@ def delete_user(id):
 
     flash(f'User {user.username} deleted successfully!', 'success')
     return redirect(url_for('admin_users'))
+
+
 
 
 with app.app_context():

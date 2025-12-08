@@ -1,4 +1,82 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}About Me{% endblock %}
+{% block title %}About - Walker Files Blog{% endblock %}
 
+{% block content %}
+<div class="post-full">
+    <h2>About Walker Files Blog</h2>
+    
+    <div class="about-content">
+        <h3>Welcome to My Cybersecurity Blog</h3>
+        
+        <p>
+            Walker Files Blog is a secure, feature-rich blogging platform built as part of my web development journey at 
+            <strong>Dunwoody College of Technology</strong>. This project showcases modern web development practices 
+            with a focus on security and user experience.
+        </p>
+
+        <h3>What We Offer</h3>
+        
+        <p>
+            This blog provides a platform for sharing insights about cybersecurity, web development, and technology. 
+            With a sleek dark cyberpunk aesthetic and robust security features, it demonstrates professional-grade 
+            web application development.
+        </p>
+
+        <h3>Technology Stack</h3>
+        
+        <p>
+            Built with <strong>Flask</strong> (Python web framework), <strong>SQLAlchemy</strong> for database management, 
+            and <strong>Flask-Login</strong> for secure authentication. Input sanitization is handled by the 
+            <strong>Bleach</strong> library to prevent XSS attacks while preserving safe HTML formatting.
+        </p>
+
+        <h3>Key Features</h3>
+        
+        <ul class="feature-list">
+            <li><strong>Secure Authentication:</strong> Password hashing and session management</li>
+            <li><strong>Role-Based Access:</strong> Admin-controlled content creation</li>
+            <li><strong>Input Sanitization:</strong> Protection against XSS attacks</li>
+            <li><strong>User Management:</strong> Admin dashboard for user oversight</li>
+            <li><strong>Interactive Comments:</strong> Community engagement on posts</li>
+            <li><strong>Responsive Design:</strong> Works beautifully on all devices</li>
+        </ul>
+
+        <h3>About the Developer</h3>
+        
+        <p>
+            I'm <strong>Will Walker</strong>, a cybersecurity student at Dunwoody College 
+            of Technology. Originally starting in computer engineering, I found my passion in cybersecurity 
+            and made the switch to focus on building secure, user-friendly applications that 
+            prioritize both functionality and security best practices.
+        </p>
+
+        <h3>Project Goals</h3>
+        
+        <p>
+            This blog was created to demonstrate:
+        </p>
+        <ul class="feature-list">
+            <li>Full-stack web development capabilities</li>
+            <li>Security-first development practices</li>
+            <li>Database design and relationships</li>
+            <li>User authentication and authorization</li>
+            <li>Modern UI/UX design principles</li>
+            <li>Comprehensive testing methodologies</li>
+        </ul>
+
+        <h3>Get in Touch</h3>
+        
+        <p>
+            Interested in learning more or have questions? Visit the <a href="{{ url_for('contact') }}">Contact page</a> 
+            to reach out. Whether you're a fellow student, potential employer, or just curious about the project, 
+            I'd love to hear from you!
+        </p>
+
+        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid rgba(40, 180, 240, 0.3);">
+            <p style="text-align: center; color: #8b5cf6;">
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

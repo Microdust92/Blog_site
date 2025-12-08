@@ -1,4 +1,111 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %}About Me{% endblock %}
+{% block title %}Contact - Walker Files Blog{% endblock %}
 
+{% block content %}
+<div class="post-full">
+    <h2>Get in Touch</h2>
+    
+    <div class="contact-content">
+        <p>
+            Thank you for your interest in Walker Files Blog! Whether you have questions about the project, 
+            feedback on the content, or opportunities to discuss, I'd love to hear from you.
+        </p>
+
+        <h3>Contact Information</h3>
+        
+        <div class="contact-info">
+            <div class="contact-item">
+                <strong>Email:</strong> 
+                <a href="mailto:walwiln@dunwoody.edu">walwiln@dunwoody.edu</a>
+            </div>
+            
+            <div class="contact-item">
+                <strong>GitHub:</strong> 
+                <a href="https://github.com/Microdust92" target="_blank">github.com/Microdust92</a>
+            </div>
+            
+            <div class="contact-item">
+                <strong>Institution:</strong> 
+                Dunwoody College of Technology
+            </div>
+            
+            <div class="contact-item">
+                <strong>Program:</strong> 
+                Cybersecurity (formerly Computer Engineering)
+            </div>
+        </div>
+
+        <h3>What I'm Looking For</h3>
+        
+        <ul class="feature-list">
+            <li><strong>Internship Opportunities:</strong> Interested in cybersecurity and web development roles</li>
+            <li><strong>Collaboration:</strong> Open to working on security-focused projects</li>
+            <li><strong>Feedback:</strong> Always eager to learn and improve my skills</li>
+            <li><strong>Networking:</strong> Connect with professionals in tech and security</li>
+        </ul>
+
+        <h3>About This Project</h3>
+        
+        <p>
+            This blog platform was developed as a final project for CWEB 1116 - Web Development. It demonstrates:
+        </p>
+        
+        <ul class="feature-list">
+            <li>Secure full-stack web development with Flask</li>
+            <li>Database design with proper relationships</li>
+            <li>Authentication and authorization systems</li>
+            <li>Input sanitization and XSS prevention</li>
+            <li>Comprehensive unit testing</li>
+            <li>Modern UI/UX design principles</li>
+        </ul>
+
+        <h3>Technical Skills</h3>
+        
+        <div class="skills-section">
+            <p><strong>Languages:</strong> Python, JavaScript, HTML/CSS, SQL</p>
+            <p><strong>Frameworks:</strong> Flask, SQLAlchemy, Flask-Login</p>
+            <p><strong>Security:</strong> Input sanitization, password hashing, authentication</p>
+            <p><strong>Tools:</strong> Git, GitHub, pytest, VS Code</p>
+            <p><strong>Databases:</strong> SQLite, relational database design</p>
+        </div>
+
+        <h3>Project Features</h3>
+        
+        <p>
+            This blog includes several advanced features that showcase professional web development practices:
+        </p>
+        
+        <ul class="feature-list">
+            <li>Role-based access control (admin vs. regular users)</li>
+            <li>User management dashboard with statistics</li>
+            <li>Input sanitization using the Bleach library</li>
+            <li>Secure password storage with Werkzeug hashing</li>
+            <li>Database relationships with cascade deletes</li>
+            <li>Comprehensive test suite (19 passing tests)</li>
+            <li>Responsive cyberpunk-themed design</li>
+            <li>Matrix-style digital rain background effect</li>
+        </ul>
+
+        <h3>Response Time</h3>
+        
+        <p>
+            I typically respond to inquiries within 24-48 hours. For urgent matters, please indicate that in 
+            your subject line.
+        </p>
+
+        <div style="margin-top: 2rem; padding: 1.5rem; background: rgba(40, 180, 240, 0.1); border-left: 4px solid #28b4f0; border-radius: 8px;">
+            <p>
+                <strong>Note:</strong> This is a student project created for educational purposes. If you're a recruiter 
+                or potential employer, I'm available for internships and entry-level positions starting in 2028.
+            </p>
+        </div>
+
+        <div style="margin-top: 2rem; text-align: center;">
+            <a href="{{ url_for('index') }}" style="color: #28b4f0; text-decoration: none; font-weight: 600;">
+                ← Back to Blog Posts
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
