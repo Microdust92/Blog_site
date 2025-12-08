@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Blog Site{% endblock %}
+
+{% block content %}
+
+
+<div class="management-container">
+    <h2>User Management</h2>
+    <p class="subtitle">Total Users: {{ users|length }}</p>
+
+    <div class="users-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Joined</th>
+                    <th>Posts</th>
+                    <th>Comments</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.username }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% if user.is_admin %}
+                            <span class="badge admin">Admin</span>
+                        {% else %}
+                            <span class="badge user">User</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ user.created_at.strftime('%b %d, %Y') }}</td>
+                    <td>{{ user.posts|length }}</td>
+                    <td>{{ user.comments|length }}</td>
+                    <td>
+                        {% if user.id != current_user.id %}
+                            <a href="{{ url_for('delete_user', id=user.id) }}" 
+                               class="btn-delete-user" 
+                               onclick="return confirm('Delete user {{ user.username }}? This will delete all their posts and comments.')">
+                                Delete
+                            </a>
+                        {% else %}
+                            <span class="text-muted">You</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

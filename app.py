@@ -5,6 +5,10 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from dotenv import load_dotenv
 import os
+import bleach
+
+
+
 
 load_dotenv()
 
@@ -16,13 +20,18 @@ app.config['SECRET_KEY'] = os.getenv('SECRET_KEY') or 'SECRET'
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
-login_manager.login_view = 'login'
+login_manager.login_view = 'login' # type: ignore
 
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
+def sanitize_input(text):
+    allowed_tags = ['p', 'br', 'strong', 'em', 'u', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'code', 'pre', 'blockquote']
+    allowed_attrs = {}
+    return bleach.clean(text, tags=allowed_tags, attributes=allowed_attrs, strip=True)
 
 
 #Database Models --------------------------------
@@ -34,6 +43,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(128), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_admin = db.Column(db.Boolean, default=False, nullable=False)
 
     posts = db.relationship('Post', backref='author', lazy=True, cascade='all, delete-orphan')
     comments = db.relationship('Comment', backref='author', lazy=True, cascade='all, delete-orphan')
@@ -52,7 +62,7 @@ class Post(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-
+    
     comments = db.relationship('Comment', backref='post', lazy=True, cascade='all, delete-orphan')      
     
 
@@ -78,7 +88,13 @@ def index():
     posts = Post.query.order_by(Post.created_at.desc()).all()
     return render_template('index.html', posts=posts)
 
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -138,9 +154,13 @@ def logout():
 @app.route('/post/new', methods=['GET', 'POST'])
 @login_required
 def create_post():
+    if not current_user.is_admin:
+        flash('Only admins can create posts', 'error')
+        return redirect(url_for('index'))
+    
     if request.method == 'POST':
-        title = request.form['title']
-        content = request.form['content']
+        title = sanitize_input(request.form['title'])
+        content = sanitize_input(request.form['content'])
 
         new_post = Post(title=title, content=content, user_id=current_user.id)
         db.session.add(new_post)
@@ -167,13 +187,13 @@ def view_post(id):
 def edit_post(id):
     post = Post.query.get_or_404(id)
 
-    if post.user_id != current_user.id:
-        flash('You can only edit your own posts', 'error')
+    if not current_user.is_admin:
+        flash('Only admins can edit posts', 'error')
         return redirect(url_for('index'))
     
     if request.method == 'POST':
-        post.title  = request.form['title']
-        post.content = request.form['content']
+        post.title  = sanitize_input(request.form['title'])
+        post.content = sanitize_input(request.form['content'])
         post.updated_at = datetime.utcnow()
         db.session.commit()
 
@@ -189,8 +209,8 @@ def edit_post(id):
 def delete_post(id):
     post = Post.query.get_or_404(id)
 
-    if post.user_id != current_user.id:
-        flash('You can only delete your own posts', 'error')
+    if not current_user.is_admin:
+        flash('Only admins can delete posts', 'error')
         return redirect(url_for('index'))
     
     db.session.delete(post)
@@ -204,7 +224,7 @@ def delete_post(id):
 @login_required
 def add_comment(post_id):
     post = Post.query.get_or_404(post_id)
-    content = request.form['content']
+    content = sanitize_input(request.form['content'])
 
     new_comment = Comment(content=content, user_id=current_user.id, post_id=post.id)
     db.session.add(new_comment)
@@ -222,7 +242,7 @@ def delete_comment(id):
     comment = Comment.query.get_or_404(id)
     post_id = comment.post_id
 
-    if comment.user_id != current_user.id:
+    if comment.user_id != current_user.id and not current_user.is_admin:
         flash('You can only delete your own comments', 'error')
         return redirect(url_for('view_post', id=post_id))
     
@@ -233,8 +253,40 @@ def delete_comment(id):
     return redirect(url_for('view_post', id=post_id))
 
 
+@app.route("/admin/users")
+@login_required
+def admin_users():
+    if not current_user.is_admin:
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    
+    users = User.query.all()
+    return render_template('admin_users.html', users=users)
+
+
+@app.route("/admin/user/<int:id>/delete")
+@login_required
+def delete_user(id):
+    if not current_user.is_admin:
+        flash('Access denied', 'error')
+        return redirect(url_for('index'))
+    
+    user = User.query.get_or_404(id)
+
+    if user.id == current_user.id:
+        flash('You cannot delete your own account', 'error')
+        return redirect(url_for('admin_users'))
+    
+    db.session.delete(user)
+    db.session.commit()
+
+    flash(f'User {user.username} deleted successfully!', 'success')
+    return redirect(url_for('admin_users'))
+
+
 with app.app_context():
     db.create_all()
+
 
 
 if __name__ == '__main__':

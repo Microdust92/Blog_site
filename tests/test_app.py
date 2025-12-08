@@ -1,4 +1,3 @@
-import pytest
 from flask_testing import TestCase
 from app import app, db, User, Post, Comment
 
@@ -18,10 +17,16 @@ class BaseTestCase(TestCase):
     
     def setUp(self):
         db.create_all()
-        # Create test user
-        self.user = User(username='testuser', email='test@example.com')
+        # Create test admin user
+        self.admin = User(username='adminuser', email='admin@example.com', is_admin=True)
+        self.admin.set_password('admin123')
+        db.session.add(self.admin)
+        
+        # Create test regular user
+        self.user = User(username='testuser', email='test@example.com', is_admin=False)
         self.user.set_password('password123')
         db.session.add(self.user)
+        
         db.session.commit()
     
     def tearDown(self):
@@ -90,8 +95,15 @@ class UserTestCase(BaseTestCase):
 class PostTestCase(BaseTestCase):
     """Test post CRUD operations"""
     
-    def login(self):
-        """Helper to login test user"""
+    def login_admin(self):
+        """Helper to login admin user"""
+        self.client.post('/login', data={
+            'username': 'adminuser',
+            'password': 'admin123'
+        })
+    
+    def login_user(self):
+        """Helper to login regular user"""
         self.client.post('/login', data={
             'username': 'testuser',
             'password': 'password123'
@@ -102,23 +114,34 @@ class PostTestCase(BaseTestCase):
         response = self.client.get('/post/new')
         self.assertEqual(response.status_code, 302)  # Redirect to login
     
-    def test_create_post(self):
-        """Test authenticated user can create post"""
-        self.login()
+    def test_create_post_requires_admin(self):
+        """Test only admins can create posts"""
+        self.login_user()
         response = self.client.post('/post/new', data={
             'title': 'Test Post',
             'content': 'This is a test post content.'
         }, follow_redirects=True)
         
         self.assert200(response)
-        post = Post.query.filter_by(title='Test Post').first()
+        self.assertIn(b'Only admins can create posts', response.data)
+    
+    def test_admin_create_post(self):
+        """Test admin can create post"""
+        self.login_admin()
+        response = self.client.post('/post/new', data={
+            'title': 'Admin Post',
+            'content': 'This is an admin post.'
+        }, follow_redirects=True)
+        
+        self.assert200(response)
+        post = Post.query.filter_by(title='Admin Post').first()
         self.assertIsNotNone(post)
-        self.assertEqual(post.content, 'This is a test post content.')
-        self.assertEqual(post.user_id, self.user.id)
+        self.assertEqual(post.content, 'This is an admin post.')
+        self.assertEqual(post.user_id, self.admin.id)
     
     def test_view_post(self):
         """Test viewing a post"""
-        post = Post(title='View Test', content='Content', user_id=self.user.id)
+        post = Post(title='View Test', content='Content', user_id=self.admin.id)
         db.session.add(post)
         db.session.commit()
         
@@ -126,10 +149,10 @@ class PostTestCase(BaseTestCase):
         self.assert200(response)
         self.assertIn(b'View Test', response.data)
     
-    def test_edit_own_post(self):
-        """Test user can edit their own post"""
-        self.login()
-        post = Post(title='Original', content='Original content', user_id=self.user.id)
+    def test_admin_edit_post(self):
+        """Test admin can edit posts"""
+        self.login_admin()
+        post = Post(title='Original', content='Original content', user_id=self.admin.id)
         db.session.add(post)
         db.session.commit()
         
@@ -143,10 +166,10 @@ class PostTestCase(BaseTestCase):
         self.assertEqual(updated_post.title, 'Updated Title')
         self.assertEqual(updated_post.content, 'Updated content')
     
-    def test_delete_own_post(self):
-        """Test user can delete their own post"""
-        self.login()
-        post = Post(title='Delete Me', content='Content', user_id=self.user.id)
+    def test_admin_delete_post(self):
+        """Test admin can delete posts"""
+        self.login_admin()
+        post = Post(title='Delete Me', content='Content', user_id=self.admin.id)
         db.session.add(post)
         db.session.commit()
         post_id = post.id
@@ -157,27 +180,21 @@ class PostTestCase(BaseTestCase):
         deleted_post = Post.query.get(post_id)
         self.assertIsNone(deleted_post)
     
-    def test_cannot_edit_others_post(self):
-        """Test user cannot edit another user's post"""
-        # Create another user and their post
-        other_user = User(username='other', email='other@example.com')
-        other_user.set_password('pass123')
-        db.session.add(other_user)
-        db.session.commit()
-        
-        post = Post(title='Other Post', content='Content', user_id=other_user.id)
+    def test_regular_user_cannot_edit_post(self):
+        """Test regular user cannot edit posts"""
+        post = Post(title='Admin Post', content='Content', user_id=self.admin.id)
         db.session.add(post)
         db.session.commit()
         
-        # Login as test user and try to edit
-        self.login()
+        # Login as regular user and try to edit
+        self.login_user()
         response = self.client.post(f'/post/{post.id}/edit', data={
             'title': 'Hacked',
             'content': 'Hacked'
         }, follow_redirects=True)
         
         self.assert200(response)
-        self.assertIn(b'You can only edit your own posts', response.data)
+        self.assertIn(b'Only admins can edit posts', response.data)
 
 
 # ===== Comment Tests =====
@@ -185,8 +202,15 @@ class PostTestCase(BaseTestCase):
 class CommentTestCase(BaseTestCase):
     """Test comment operations"""
     
-    def login(self):
-        """Helper to login test user"""
+    def login_admin(self):
+        """Helper to login admin user"""
+        self.client.post('/login', data={
+            'username': 'adminuser',
+            'password': 'admin123'
+        })
+    
+    def login_user(self):
+        """Helper to login regular user"""
         self.client.post('/login', data={
             'username': 'testuser',
             'password': 'password123'
@@ -194,7 +218,7 @@ class CommentTestCase(BaseTestCase):
     
     def test_add_comment_requires_login(self):
         """Test adding comment requires authentication"""
-        post = Post(title='Test', content='Content', user_id=self.user.id)
+        post = Post(title='Test', content='Content', user_id=self.admin.id)
         db.session.add(post)
         db.session.commit()
         
@@ -205,8 +229,8 @@ class CommentTestCase(BaseTestCase):
     
     def test_add_comment(self):
         """Test authenticated user can add comment"""
-        self.login()
-        post = Post(title='Test', content='Content', user_id=self.user.id)
+        self.login_user()
+        post = Post(title='Test', content='Content', user_id=self.admin.id)
         db.session.add(post)
         db.session.commit()
         
@@ -222,8 +246,8 @@ class CommentTestCase(BaseTestCase):
     
     def test_delete_own_comment(self):
         """Test user can delete their own comment"""
-        self.login()
-        post = Post(title='Test', content='Content', user_id=self.user.id)
+        self.login_user()
+        post = Post(title='Test', content='Content', user_id=self.admin.id)
         db.session.add(post)
         db.session.commit()
         
@@ -232,6 +256,26 @@ class CommentTestCase(BaseTestCase):
         db.session.commit()
         comment_id = comment.id
         
+        response = self.client.get(f'/comment/{comment_id}/delete', follow_redirects=True)
+        self.assert200(response)
+        
+        deleted_comment = Comment.query.get(comment_id)
+        self.assertIsNone(deleted_comment)
+    
+    def test_admin_can_delete_any_comment(self):
+        """Test admin can delete any user's comment"""
+        self.login_admin()
+        post = Post(title='Test', content='Content', user_id=self.admin.id)
+        db.session.add(post)
+        db.session.commit()
+        
+        # Create comment by regular user
+        comment = Comment(content='User comment', user_id=self.user.id, post_id=post.id)
+        db.session.add(comment)
+        db.session.commit()
+        comment_id = comment.id
+        
+        # Admin deletes it
         response = self.client.get(f'/comment/{comment_id}/delete', follow_redirects=True)
         self.assert200(response)
         
@@ -246,17 +290,17 @@ class DatabaseTestCase(BaseTestCase):
     
     def test_user_post_relationship(self):
         """Test one-to-many relationship between users and posts"""
-        post1 = Post(title='Post 1', content='Content 1', user_id=self.user.id)
-        post2 = Post(title='Post 2', content='Content 2', user_id=self.user.id)
+        post1 = Post(title='Post 1', content='Content 1', user_id=self.admin.id)
+        post2 = Post(title='Post 2', content='Content 2', user_id=self.admin.id)
         db.session.add_all([post1, post2])
         db.session.commit()
         
-        self.assertEqual(len(self.user.posts), 2)
-        self.assertEqual(post1.author.username, 'testuser')
+        self.assertEqual(len(self.admin.posts), 2)
+        self.assertEqual(post1.author.username, 'adminuser')
     
     def test_post_comment_relationship(self):
         """Test one-to-many relationship between posts and comments"""
-        post = Post(title='Test', content='Content', user_id=self.user.id)
+        post = Post(title='Test', content='Content', user_id=self.admin.id)
         db.session.add(post)
         db.session.commit()
         
@@ -269,7 +313,7 @@ class DatabaseTestCase(BaseTestCase):
     
     def test_cascade_delete_post(self):
         """Test deleting post also deletes its comments"""
-        post = Post(title='Test', content='Content', user_id=self.user.id)
+        post = Post(title='Test', content='Content', user_id=self.admin.id)
         db.session.add(post)
         db.session.commit()
         
